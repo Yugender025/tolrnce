@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>TolRnce</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a drafting sheet. The copy runs down the left like the notes on a drawing; the part on the right
+   changes as you scroll, from a sketch to a solid to an assembly. The footer is the sheet's title block. */
+:root {
+  --bg: #F8F9F8;          /* Paper */
+  --surface: #FFFFFF;
+  --fg: #1D2327;          /* Ink */
+  --muted: #4F595F;       /* Steel, darkened for text */
+  --accent: #F0CF45;      /* Forge gold */
+  --accent-fg: #1D2327;
+  --gauge: #2D6CB5;       /* dimension and callout blue */
+  --rule: rgba(29, 35, 39, .14);
+  --rule-strong: rgba(29, 35, 39, .32);
+  --grid: rgba(29, 35, 39, .045);
+  --halo: rgba(248, 249, 248, .94);
+  --ok: #2E7A4E;
+  --warn: #8A6A00;
+  --bad: #B4441C;
+  --display: "Archivo", "IBM Plex Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181B; --surface: #1B2024; --fg: #E9EDEB; --muted: #A6B0B5; --gauge: #7FB0EC;
+    --rule: rgba(233, 237, 235, .14); --rule-strong: rgba(233, 237, 235, .32); --grid: rgba(233, 237, 235, .04);
+    --halo: rgba(20, 24, 27, .92); --ok: #6CC08F; --warn: #F0CF45; --bad: #F08A63; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181B; --surface: #1B2024; --fg: #E9EDEB; --muted: #A6B0B5; --gauge: #7FB0EC;
+  --rule: rgba(233, 237, 235, .14); --rule-strong: rgba(233, 237, 235, .32); --grid: rgba(233, 237, 235, .04);
+  --halo: rgba(20, 24, 27, .92); --ok: #6CC08F; --warn: #F0CF45; --bad: #F08A63; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background-color: var(--bg); color: var(--fg); font: 400 17px/1.6 var(--body);
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--gauge); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+
+/* the 3D stage and its callouts sit behind the copy */
+#stage { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+#tags { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.tag { position: absolute; left: 0; top: 0; will-change: transform, opacity; visibility: hidden; }
+.tag .dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--gauge); box-shadow: 0 0 0 3px var(--halo); }
+.tag .lbl {
+  position: absolute; left: 12px; top: 0; transform: translateY(-50%); white-space: nowrap;
+  font: 500 12.5px/1.35 var(--mono); color: var(--fg); background: var(--halo); border: 1px solid var(--rule-strong);
+  padding: 4px 8px; border-radius: 4px;
+}
+.tag.left .lbl, .tag.flip .lbl { left: auto; right: 12px; }
+.tag.left.flip .lbl { left: 12px; right: auto; }
+.tag.dim .dot { display: none; }
+.tag.dim .lbl { left: 0; transform: translate(-50%, -50%); border: 0; padding: 0 4px; background: var(--halo); color: var(--gauge); font-weight: 500; }
+.tag.dim.lead .lbl { transform: translate(0, -50%); }
+.tag.gap .lbl { border-color: var(--gauge); color: var(--gauge); }
+.tag.gap.bad .lbl { border-color: var(--bad); color: var(--bad); }
+.tag.gap.bad .dot { background: var(--bad); }
+.tag.ok .lbl { border-color: var(--ok); color: var(--ok); }
+.tag.ok .dot { background: var(--ok); }
+.tag.frame .lbl { border-color: var(--fg); letter-spacing: .02em; }
+.tag.datum .dot { display: none; }
+.tag.datum .lbl { left: 0; transform: translate(-50%, -50%); border: 1.5px solid var(--fg); font-weight: 600; padding: 2px 8px; }
+.no-3d #stage, .no-3d #tags { display: none; }
+
+/* header */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-block: 12px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 600 20px/1 var(--body); letter-spacing: -.005em; }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 15px; }
+.nav ul a { text-decoration: none; color: var(--muted); }
+.nav ul a:hover { color: var(--fg); }
+.nav .right { display: flex; align-items: center; gap: 22px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  border-radius: 8px; border: 1px solid var(--rule-strong); background: transparent; color: var(--fg);
+  font: 500 15.5px/1 var(--body); text-decoration: none; cursor: pointer; transition: transform .15s ease, background-color .15s ease;
+}
+.btn:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: rgba(29, 35, 39, .35); font-weight: 600; }
+.btn.primary:hover { background: #F5DA66; }
+.btn.small { min-height: 36px; padding: 0 12px; font-size: 14px; }
+
+/* story scenes: sticky copy on the left, the model on the right */
+main { position: relative; z-index: 2; }
+.scene { position: relative; min-height: 175vh; padding-left: var(--gutter-l); padding-right: var(--gutter-r); display: grid; }
+.scene > .wrap { width: 100%; justify-self: center; }
+.wrap { max-width: 1240px; margin: 0 auto; }
+.copy { position: sticky; top: 18vh; width: min(30rem, 38vw); padding-block: 6vh; display: grid; gap: 18px; }
+.copy h2 { font: 760 clamp(30px, 3.6vw, 46px)/1.06 var(--display); font-stretch: 112%; letter-spacing: -.012em; }
+.copy p { color: var(--muted); max-width: 60ch; }
+.copy p strong { color: var(--fg); font-weight: 600; }
+.hero { min-height: 150vh; }
+.hero .copy { top: 10vh; width: min(35rem, 42vw); padding-top: 9vh; gap: 22px; }
+.def { font: 400 14px/1.5 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 0 10px; align-items: baseline; }
+.def b { font: 600 15px/1 var(--body); color: var(--fg); }
+.def i { font-style: italic; }
+.hero h1 { font: 780 clamp(42px, 5.6vw, 78px)/1.0 var(--display); font-stretch: 116%; letter-spacing: -.02em; }
+.hero .lede { font-size: 19px; color: var(--muted); max-width: 34rem; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.hint { font-size: 14px; color: var(--muted); }
+
+.facts { display: grid; gap: 10px; margin: 0; }
+.facts div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.facts dt { font: 500 13px/1.6 var(--mono); color: var(--fg); }
+.facts dd { margin: 0; font-size: 15px; color: var(--muted); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; list-style: none; margin: 0; padding: 0; font-size: 14.5px; }
+.legend li { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--rule-strong); }
+
+/* the fit you can try */
+.fit-toy { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--rule-strong); border-radius: 12px; background: var(--surface); }
+.fit-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.fit-row label { font-weight: 500; font-size: 15px; }
+.fit-row output { font: 500 18px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.fit-toy input[type="range"] { width: 100%; accent-color: var(--gauge); margin: 0; min-height: 28px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets button { font: 500 13.5px/1 var(--body); padding: 8px 11px; border-radius: 99px; border: 1px solid var(--rule-strong); background: transparent; color: var(--fg); cursor: pointer; }
+.presets button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.fit-result { border-left: 3px solid var(--ok); padding: 2px 0 2px 12px; color: var(--fg) !important; font-size: 15.5px; }
+.fit-result b { display: block; font-size: 16.5px; }
+.fit-result[data-kind="tap"] { border-color: var(--warn); }
+.fit-result[data-kind="press"], .fit-result[data-kind="loose"] { border-color: var(--bad); }
+.fit-toy .note { font-size: 13.5px; }
+
+/* bands: full-width sheets that cover the model */
+.band { position: relative; z-index: 3; background: var(--surface); border-block: 1px solid var(--rule); padding-block: clamp(64px, 9vw, 112px); padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+.band .wrap { display: grid; gap: 28px; }
+.band h2 { font: 760 clamp(30px, 3.6vw, 46px)/1.06 var(--display); font-stretch: 112%; letter-spacing: -.012em; max-width: 22ch; }
+.band .intro { color: var(--muted); max-width: 62ch; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule-strong); border-radius: 10px; background: var(--bg); }
+table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
+caption { text-align: left; padding: 12px 16px; font: 500 13px/1.4 var(--mono); color: var(--muted); border-bottom: 1px solid var(--rule-strong); }
+th { text-align: left; font: 500 13px/1.4 var(--mono); color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--rule-strong); background: var(--surface); }
+td { padding: 12px 16px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.mono, td.file { font-family: var(--mono); font-size: 14px; }
+td.file { white-space: nowrap; color: var(--fg); }
+td.item { width: 4rem; font-family: var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+td.res { font-variant-numeric: tabular-nums; }
+.status { display: inline-block; font: 600 12.5px/1 var(--mono); padding: 5px 9px; border-radius: 4px; border: 1.5px solid currentColor; transform: rotate(-2deg); }
+.status.pass { color: var(--ok); }
+.status.wip { color: var(--warn); }
+.note-fine { font-size: 13.5px; color: var(--muted); max-width: 80ch; }
+
+/* closing scene */
+.closing { min-height: 150vh; }
+.contact { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: 12px; background: var(--surface); }
+.contact .label { font-size: 14px; color: var(--muted); flex-basis: 100%; }
+.contact code { font: 500 18px/1.2 var(--mono); user-select: all; color: var(--fg); }
+.runs { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.runs li { border-top: 1px solid var(--rule); padding-top: 10px; font-size: 15.5px; color: var(--muted); }
+.runs b { color: var(--fg); font-weight: 600; }
+
+/* footer: the sheet's title block */
+.titleblock { position: relative; z-index: 3; background: var(--bg); padding-block: 40px 48px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); border-top: 1px solid var(--rule); }
+.tb { display: grid; grid-template-columns: 2fr 3fr 1fr 2fr 1fr 1fr; border: 1.5px solid var(--fg); }
+.tb .cell { padding: 8px 12px 10px; border-left: 1px solid var(--fg); min-width: 0; }
+.tb .cell:first-child { border-left: 0; }
+.tb span { display: block; font: 400 11.5px/1.4 var(--mono); color: var(--muted); }
+.tb b { display: block; font: 600 16px/1.3 var(--body); }
+.tb .name b { font-size: 20px; }
+.fine { margin-top: 16px; font-size: 13px; color: var(--muted); max-width: 90ch; }
+
+@media (max-width: 1100px) { .nav ul { display: none; } }
+@media (max-width: 899px) {
+  .scene { min-height: 160vh; }
+  .copy { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 50svh); width: auto; max-width: 34rem; margin: 0 auto; padding: 16px 18px; gap: 12px;
+    background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 14px; max-height: calc(50svh - 12px); overflow: auto; }
+  .copy h2 { font-size: 28px; }
+  .copy p { font-size: 15.5px; }
+  .hero { min-height: auto; padding-top: 44svh; padding-bottom: 30svh; }
+  .hero .copy { position: static; width: auto; max-height: none; overflow: visible; padding: 0; background: none; border: 0; gap: 16px; }
+  .hero h1 { font-size: clamp(36px, 10vw, 48px); }
+  .hero .lede { font-size: 17px; }
+  .closing { min-height: auto; padding-top: 46svh; padding-bottom: 10svh; }
+  .closing .copy { position: static; max-height: none; overflow: visible; }
+  .tb { grid-template-columns: 1fr 1fr; }
+  .tb .cell { border-left: 0; border-top: 1px solid var(--fg); }
+  .tb .cell:nth-child(even) { border-left: 1px solid var(--fg); }
+  .tb .cell:nth-child(-n+2) { border-top: 0; }
+  .tag .lbl { font-size: 11px; padding: 3px 6px; white-space: normal; width: max-content; max-width: min(46vw, 210px); }
+}
+@media (max-width: 520px) { .nav .btn { padding: 0 12px; } }
+</style>
+<meta name="description" content="TolRnce is an AI design engineer for CAD. Describe a part, or drop in a drawing or a supplier’s STEP file, and get a parametric 3D model with its tolerances, drawing, cost and the steps to build it in your CAD program.">
+<link rel="canonical" href="https://tolrnce.com/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#F8F9F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181B" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TolRnce">
+<meta property="og:url" content="https://tolrnce.com/">
+<meta property="og:title" content="TolRnce: CAD that designs to tolerance">
+<meta property="og:description" content="TolRnce is an AI design engineer for CAD. Describe a part, or drop in a drawing or a supplier’s STEP file, and get a parametric 3D model with its tolerances, drawing, cost and the steps to build it in your CAD program.">
+<meta property="og:image" content="https://tolrnce.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The TolRnce fit-cube logo and the line: CAD that designs to tolerance.">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div id="tags" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="brand" href="#top" aria-label="TolRnce, back to the top">
+    <svg viewBox="0 0 200 200" aria-hidden="true"><polygon points="27.9,60.4 97.2,100.4 97.2,180.4 27.9,140.4" fill="#59636A"/><polygon points="97.2,20.4 131.8,40.4 97.2,100.4 27.9,60.4" fill="#F0CF45"/><polygon points="172.1,63.7 172.1,143.7 102.8,183.7 102.8,103.7" fill="#C9D0CD"/><polygon points="137.5,43.7 172.1,63.7 102.8,103.7" fill="#F0CF45"/></svg>
+    <span>TolRnce</span>
+  </a>
+  <div class="right">
+    <ul>
+      <li><a href="#drawing">How it works</a></li>
+      <li><a href="#fits">Tolerances</a></li>
+      <li><a href="#outputs">Outputs</a></li>
+      <li><a href="#proof">Test results</a></li>
+    </ul>
+    <a class="btn primary small" href="#access">Get early access</a>
+  </div>
+</header>
+
+<main>
+  <section class="scene hero" id="top" aria-labelledby="h-hero">
+    <div class="wrap">
+      <div class="copy">
+        <p class="def"><b>TolRnce</b><span>/ˈtɒl(ə)rəns/</span><i>noun</i><span>The amount a size can vary and the part still fits.</span></p>
+        <h1 id="h-hero">CAD that designs to tolerance.</h1>
+        <p class="lede">TolRnce is an AI design engineer. Describe a part, or drop in a drawing or a supplier’s STEP file, and get a parametric 3D model with its tolerances, drawing, cost and the steps to build it in your CAD program.</p>
+        <div class="ctas"><a class="btn primary" href="#access">Get early access</a><a class="btn" href="#drawing">See how it works</a></div>
+        <p class="hint">Scroll to build a part. Click or tap the cube to test its fit.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" id="drawing" aria-labelledby="h-drawing">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-drawing">From a drawing to a solid</h2>
+        <p>Open a DWG or DXF, a photo of a drawing, or describe the part in words. TolRnce builds a real solid on the OpenCASCADE geometry kernel, with parameters you can change and features you can switch off.</p>
+        <dl class="facts">
+          <div><dt>Reads</dt><dd>DWG, DXF, photos of drawings, STEP AP203, AP214 and AP242</dd></div>
+          <div><dt>Builds</dt><dd>Extrudes, cuts, holes with ISO fits, revolves, fillets, chamfers, shells, patterns and bent tube</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" id="features" aria-labelledby="h-features">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-features">It reads a part the way you do</h2>
+        <p>Drop in a supplier’s STEP file and a trained feature network labels every face: through holes, blind holes, counterbores, countersinks, slots, pockets, steps, bosses, chamfers and fillets. Each feature is checked against the exact geometry, and sizes always come from the geometry.</p>
+        <p>It also finds tube sockets, NPT ports and mounting holes, so a vendor part drops straight into an assembly.</p>
+        <ul class="legend" aria-label="Colours on the model">
+          <li><i style="background:#F0CF45"></i>Holes</li>
+          <li><i style="background:#2D6CB5"></i>Slot</li>
+          <li><i style="background:#3D464C"></i>Corner rounds</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" id="fits" aria-labelledby="h-fits">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-fits">Every hole knows its fit</h2>
+        <p>Tolerances are part of the model: ISO 286 fits on holes and shafts, ISO 2768 general tolerances on the drawing, and a stack-up calculator for chains of dimensions. Try a fit on a ⌀20 bore.</p>
+        <div class="fit-toy">
+          <div class="fit-row"><label for="shaft">Shaft diameter</label><output id="shaftOut" for="shaft">⌀19.985 mm</output></div>
+          <input type="range" id="shaft" min="19.940" max="20.050" step="0.001" value="19.985">
+          <div class="presets" role="group" aria-label="Try a fit">
+            <button type="button" data-d="20.028" aria-pressed="false">Press</button>
+            <button type="button" data-d="20.008" aria-pressed="false">Transition</button>
+            <button type="button" data-d="19.985" aria-pressed="true">Sliding</button>
+            <button type="button" data-d="19.965" aria-pressed="false">Running</button>
+            <button type="button" data-d="19.945" aria-pressed="false">Loose</button>
+          </div>
+          <p class="fit-result" id="fitResult" role="status" data-kind="slide"><b id="fitHead">Slides in by hand.</b> <span id="fitDetail">Clearance 0.015 to 0.036 mm. In the H7/g6 sliding fit range.</span></p>
+          <p class="hint note">Bore ⌀20 H7: 20.000 to 20.021 mm. The gap is drawn 100 times larger.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" id="assembly" aria-labelledby="h-assembly">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-assembly">Assemblies that bolt together</h2>
+        <p>Place parts with mates, then bolt a set of holes. Screw lengths come from the joint stack, every hole is checked for alignment, and clashes are caught before anything is made.</p>
+        <p>The bill of materials and the cost roll-up update as you go, with ISO screws, nuts, washers, dowels and bearings from the built-in library.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" id="panels" aria-labelledby="h-panels">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-panels">Panels, skids and tubing</h2>
+        <p>Fittings, valves, gauges and manifolds come with ports. Connect them, and TolRnce routes tube around every part on the panel, places cushion clamps where tube crosses the strut, and writes the cut list.</p>
+        <p>The same works for vendor parts: their ports are found when you open the STEP file.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="outputs" aria-labelledby="h-outputs">
+    <div class="wrap">
+      <h2 id="h-outputs">Into the CAD program you already use</h2>
+      <p class="intro">Every part and assembly exports as a package of ordinary files. Open the STEP anywhere, or run a macro and get the full feature tree in your own CAD program, ready to edit.</p>
+      <div class="tablewrap">
+        <table>
+          <caption>Parts list: what’s in an export</caption>
+          <thead><tr><th scope="col">Item</th><th scope="col">File</th><th scope="col">What it’s for</th></tr></thead>
+          <tbody>
+            <tr><td class="item">1</td><td class="file">part.step</td><td>The solid, for any CAD program. Assemblies keep their structure, with one product per part.</td></tr>
+            <tr><td class="item">2</td><td class="file">part.stl</td><td>A mesh for 3D printing and viewing.</td></tr>
+            <tr><td class="item">3</td><td class="file">drawing.svg</td><td>The manufacturing drawing: views, dimensions, hole table and ISO 2768 general tolerances.</td></tr>
+            <tr><td class="item">4</td><td class="file">solidworks_macro.bas</td><td>Rebuilds the feature tree in SOLIDWORKS.</td></tr>
+            <tr><td class="item">5</td><td class="file">fusion_script.py</td><td>Rebuilds it in Fusion.</td></tr>
+            <tr><td class="item">6</td><td class="file">freecad_macro.FCMacro<br>cadquery_model.py</td><td>Rebuild it in FreeCAD or with CadQuery.</td></tr>
+            <tr><td class="item">7</td><td class="file">steps_*.md</td><td>Step-by-step instructions for SOLIDWORKS, Fusion, Inventor, Onshape, FreeCAD and AutoCAD.</td></tr>
+            <tr><td class="item">8</td><td class="file">bom.csv<br>tube_cut_list.csv</td><td>The bill of materials, with standard and vendor parts, and the tube cut list.</td></tr>
+            <tr><td class="item">9</td><td class="file">cost_estimate.md</td><td>A rough cost per process and quantity, with design-for-manufacturing checks.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="proof" aria-labelledby="h-proof">
+    <div class="wrap">
+      <h2 id="h-proof">Checked against public test data</h2>
+      <p class="intro">We measure TolRnce on test files published by the US National Institute of Standards and Technology (NIST) and on independent tables of standard parts, and keep every score as a regression test.</p>
+      <div class="tablewrap">
+        <table>
+          <caption>Inspection report, October 2026</caption>
+          <thead><tr><th scope="col">Characteristic</th><th scope="col">Checked against</th><th scope="col">Result</th><th scope="col">Status</th></tr></thead>
+          <tbody>
+            <tr><td>Reading STEP files</td><td>28 NIST test-case files, compared with OpenCASCADE’s own reader</td><td class="res">27 of 27 solids match to 0.01%. The mesh-only file is refused with a clear message.</td><td><span class="status pass">Pass</span></td></tr>
+            <tr><td>Reading tolerances from STEP AP242</td><td>NIST’s list of the annotations each test case carries</td><td class="res">404 of 415 read correctly (97.3%)</td><td><span class="status pass">Pass</span></td></tr>
+            <tr><td>Standard part sizes</td><td>137 values from bd_warehouse: ISO 273, 4762, 4017, 4032, 7089, bearings, pipe</td><td class="res">0 mismatches</td><td><span class="status pass">Pass</span></td></tr>
+            <tr><td>Feature recognition</td><td>606 test parts the network never trained on</td><td class="res">99.75% of faces labelled correctly</td><td><span class="status pass">Pass</span></td></tr>
+            <tr><td>Feature recognition on real parts</td><td>829 faces of holes dimensioned in NIST’s parts</td><td class="res">87% labelled as holes. Every feature is checked against the exact geometry before it’s shown.</td><td><span class="status wip">Improving</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note-fine">NIST test cases courtesy of the NIST MBE PMI Validation and Conformance Testing Project. NIST does not endorse TolRnce.</p>
+    </div>
+  </section>
+
+  <section class="scene closing" id="access" aria-labelledby="h-access">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="h-access">Get early access</h2>
+        <p>TolRnce is in early access for design and manufacturing teams. Tell us what you design, what CAD program you use, and what slows you down. We’ll set you up.</p>
+        <div class="contact">
+          <span class="label">Email us</span>
+          <code id="email">hello@tolrnce.com</code>
+          <button type="button" class="btn small" id="copyEmail">Copy</button>
+        </div>
+        <ul class="runs">
+          <li><b>In your browser:</b> the full studio, with the AI agent.</li>
+          <li><b>Desktop app for Windows and macOS:</b> works offline and saves .tolrnce projects. The agent comes to the desktop next.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="titleblock" aria-label="Title block">
+  <div class="wrap">
+    <div class="tb">
+      <div class="cell name"><span>Title</span><b>TolRnce</b></div>
+      <div class="cell"><span>Description</span><b>AI design engineer for CAD</b></div>
+      <div class="cell"><span>Units</span><b>mm</b></div>
+      <div class="cell"><span>General tolerances</span><b>ISO 2768-m</b></div>
+      <div class="cell"><span>Revision</span><b>0.18</b></div>
+      <div class="cell"><span>Sheet</span><b>1 of 1</b></div>
+    </div>
+    <p class="fine">© 2026 TolRnce. SOLIDWORKS, Fusion, Inventor, Onshape, FreeCAD and AutoCAD are trademarks of their owners; TolRnce isn’t affiliated with them.</p>
+  </div>
+</footer>
+
+<script>
+/* Page behaviour that works with or without the 3D view: the fit calculator and the copy button. */
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  // ISO 286, nominal 20 mm (18 to 30 mm range): hole H7 = 0 / +21 µm; shaft limits in mm
+  var BORE_MIN = 20.000, BORE_MAX = 20.021;
+  var ISO = [
+    ['H7/p6 press fit', 20.022, 20.035], ['H7/k6 transition fit', 20.002, 20.015],
+    ['H7/g6 sliding fit', 19.980, 19.993], ['H7/h6 location fit', 19.987, 20.000], ['H7/f7 running fit', 19.959, 19.980]];
+  function r3(v) { return Math.round(v * 1000) / 1000; }
+  function mm(v) { return Math.abs(v).toFixed(3); }
+  function fitFor(d) {
+    var cmin = r3(BORE_MIN - d), cmax = r3(BORE_MAX - d), kind, head, detail;
+    var iso = ISO.filter(function (r) { return d >= r[1] - 1e-9 && d <= r[2] + 1e-9; })[0];
+    if (cmax < 0) { kind = 'press'; head = 'Needs a press.'; detail = 'Interference ' + mm(cmax) + ' to ' + mm(cmin) + ' mm.'; }
+    else if (cmin < 0) { kind = 'tap'; head = 'Might need a light tap.'; detail = 'From ' + mm(cmin) + ' mm interference to ' + mm(cmax) + ' mm clearance.'; }
+    else if (d >= 19.980) { kind = 'slide'; head = 'Slides in by hand.'; detail = 'Clearance ' + mm(cmin) + ' to ' + mm(cmax) + ' mm.'; }
+    else if (d >= 19.959) { kind = 'run'; head = 'Turns freely.'; detail = 'Clearance ' + mm(cmin) + ' to ' + mm(cmax) + ' mm.'; }
+    else { kind = 'loose'; head = 'Too loose: it rattles.'; detail = 'Clearance ' + mm(cmin) + ' to ' + mm(cmax) + ' mm.'; }
+    if (iso) detail += ' In the ' + iso[0] + ' range.';
+    return { d: d, kind: kind, head: head, detail: detail };
+  }
+  window.TOL = { fitFor: fitFor, d: 19.985, kind: 'slide' };
+  var range = $('#shaft');
+  function setShaft(d, fromPreset) {
+    var f = fitFor(d);
+    window.TOL.d = d; window.TOL.kind = f.kind;
+    $('#shaftOut').textContent = '⌀' + d.toFixed(3) + ' mm';
+    var res = $('#fitResult'); res.dataset.kind = f.kind;
+    $('#fitHead').textContent = f.head; $('#fitDetail').textContent = f.detail;
+    Array.prototype.forEach.call(document.querySelectorAll('.presets button'), function (b) {
+      b.setAttribute('aria-pressed', String(Math.abs(parseFloat(b.dataset.d) - d) < 0.0005));
+    });
+    document.dispatchEvent(new CustomEvent('tol:shaft', { detail: { d: d, kind: f.kind, drop: !!fromPreset } }));
+  }
+  var last = 0;
+  range.addEventListener('input', function () { setShaft(parseFloat(range.value), false); });
+  range.addEventListener('change', function () { setShaft(parseFloat(range.value), true); });
+  Array.prototype.forEach.call(document.querySelectorAll('.presets button'), function (b) {
+    b.addEventListener('click', function () { range.value = b.dataset.d; setShaft(parseFloat(b.dataset.d), true); });
+  });
+  setShaft(parseFloat(range.value), false);
+
+  var copyBtn = $('#copyEmail'), email = $('#email');
+  copyBtn.addEventListener('click', function () {
+    var text = email.textContent.trim();
+    function selectIt() { var r = document.createRange(); r.selectNodeContents(email); var s = getSelection(); s.removeAllRanges(); s.addRange(r); copyBtn.textContent = 'Selected: press Ctrl+C'; }
+    try {
+      navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000); }, selectIt);
+    } catch (e) { selectIt(); }
+  });
+  // if the 3D view can't start (no WebGL, or the library didn't load), the page reads fine without it
+  setTimeout(function () { if (!window.__tol3d) document.documentElement.classList.add('no-3d'); }, 8000);
+})();
+</script>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('stage');
+const tagLayer = document.getElementById('tags');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+} catch (e) {
+  document.documentElement.classList.add('no-3d');
+  throw e;
+}
+window.__tol3d = true;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7d878c, 1.25));
+const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(140, 260, 300); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffffff, 0.45); rim.position.set(-220, 60, -160); scene.add(rim);
+const camera = new THREE.PerspectiveCamera(28, 1, 10, 10000);
+
+/* ---------- helpers ---------- */
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const C = { gold: 0xF0CF45, steel: 0x59636A, mist: 0xC9D0CD, ink: 0x1D2327, stock: 0xC6CDCF, gauge: 0x2D6CB5, corner: 0x3D464C };
+
+function std(color, o = {}) {
+  return new THREE.MeshStandardMaterial({ color, roughness: o.r ?? 0.5, metalness: o.m ?? 0.1, envMapIntensity: o.env ?? 0.55,
+    vertexColors: !!o.vc, side: o.side ?? THREE.FrontSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+}
+function lineMat(color, opacity) { const m = new THREE.LineBasicMaterial({ color, transparent: true, opacity }); m.userData.base = opacity; return m; }
+
+const actors = [];
+function actor(name, baseScale) {
+  const a = { name, group: new THREE.Group(), mats: [], tags: [], baseScale, range: [0, 0], p: 0, click: 0, pick: [], update() {} };
+  scene.add(a.group); actors.push(a); return a;
+}
+function own(a, m) { if (m.userData.base == null) m.userData.base = 1; a.mats.push(m); return m; }
+function edges(a, mesh, thresh = 30, op = 0.5) {
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, thresh), own(a, lineMat(C.ink, op)));
+  mesh.add(e); return e;
+}
+function shapeEdges(a, mesh, shape, zs, verts = [], op = 0.55) {
+  const pos = [], seg = pts => { for (const z of zs) for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; pos.push(p.x, p.y, z, q.x, q.y, z); } };
+  seg(shape.getPoints(28)); for (const h of shape.holes) seg(h.getPoints(28));
+  for (const [x, y] of verts) pos.push(x, y, zs[0], x, y, zs[zs.length - 1]);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const e = new THREE.LineSegments(g, own(a, lineMat(C.ink, op))); mesh.add(e); return e;
+}
+// colour each triangle of a non-indexed geometry from its face normal and centroid
+function faceLoop(g, fn) {
+  const p = g.attributes.position, A = new THREE.Vector3(), B = new THREE.Vector3(), D = new THREE.Vector3(), u = new THREE.Vector3(), w = new THREE.Vector3();
+  for (let i = 0; i < p.count; i += 3) {
+    A.fromBufferAttribute(p, i); B.fromBufferAttribute(p, i + 1); D.fromBufferAttribute(p, i + 2);
+    u.subVectors(B, A); w.subVectors(D, A); u.cross(w).normalize();
+    fn(i, u.x, u.y, u.z, (A.x + B.x + D.x) / 3, (A.y + B.y + D.y) / 3, (A.z + B.z + D.z) / 3);
+  }
+}
+function colorize(g, pick) {
+  const n = g.attributes.position.count, col = new Float32Array(n * 3), c = new THREE.Color();
+  faceLoop(g, (i, nx, ny, nz, cx, cy, cz) => { c.set(pick(nx, ny, nz, cx, cy, cz)); for (let k = 0; k < 3; k++) col.set([c.r, c.g, c.b], (i + k) * 3); });
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+}
+
+/* ---------- callouts: HTML labels pinned to points on the models ---------- */
+const tags = [];
+function addTag(a, obj, pos, html, cls = '') {
+  const el = document.createElement('div');
+  el.className = 'tag ' + cls;
+  el.innerHTML = '<span class="dot"></span><span class="lbl"></span>';
+  el.lastChild.innerHTML = html;
+  tagLayer.appendChild(el);
+  const t = { a, obj, pos: new THREE.Vector3().fromArray(pos), el, k: 0, on: false, html };
+  tags.push(t); a.tags.push(t); return t;
+}
+function setTag(t, html, cls) {
+  if (t.html !== html) { t.el.lastChild.innerHTML = html; t.html = html; }
+  if (cls !== undefined && t.cls !== cls) { t.el.className = 'tag ' + cls; t.cls = cls; }
+}
+
+/* ---------- 1. the fit cube (the logo, in 3D) ---------- */
+function makeCube(a) {
+  const S = 35, B = 1.4;
+  const n = new THREE.Vector3(2, 0, -1).normalize();     // normal of the split, pointing from piece A to piece B
+  const tilt = new THREE.Group(), spin = new THREE.Group();
+  a.group.add(tilt); tilt.add(spin);
+  const piece = (pts, side, cut, cutN) => {
+    const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 2 * S - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelOffset: -B, bevelSegments: 3, curveSegments: 1 });
+    g.rotateX(-Math.PI / 2); g.translate(0, -(S - B), 0);
+    colorize(g, (nx, ny, nz) => ny > 0.6 ? C.gold : ny < -0.6 ? 0x2A3136 : (nx * cutN.x + nz * cutN.z > 0.75 ? cut : side));
+    const m = new THREE.Mesh(g, own(a, new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false })));
+    a.pick.push(m); return m;
+  };
+  const A = piece([[-S, -S], [0, -S], [S, S], [-S, S]], C.steel, 0x454E54, n);
+  const Bp = piece([[0, -S], [S, -S], [S, S]], C.mist, 0xA7B0AD, n.clone().negate());
+  spin.add(A, Bp);
+  return { tilt, spin, A, B: Bp, n, S };
+}
+
+const ptr = { x: 0, y: 0 }, ptrT = { x: 0, y: 0 };
+
+const hero = actor('hero', 1.22);
+const cube1 = makeCube(hero);
+const heroTag = addTag(hero, cube1.spin, [0, 0, 0], 'Gap 0.05 ±0.01', 'gap');
+hero.update = (tl, time, dt) => {
+  const f = clamp(tl, 0, 1);
+  const open = ease(sm(0.0, 0.62, f));
+  const gap = 4 + 34 * open + hero.click;
+  cube1.B.position.copy(cube1.n).multiplyScalar(gap);
+  cube1.spin.rotation.y = -Math.PI / 4 + (RM ? 0 : 0.16 * Math.sin(time * 0.5)) + ptr.x * 0.35 + open * 0.7;
+  cube1.tilt.rotation.x = 0.56 + ptr.y * 0.16 - open * 0.12;
+  hero.group.position.y = open * 8;
+  heroTag.pos.set(17.5, 36.5, 0).addScaledVector(cube1.n, gap / 2);
+  const out = open > 0.2 || hero.click > 3;
+  setTag(heroTag, out ? 'Gap out of tolerance' : 'Gap 0.05 ±0.01', out ? 'gap bad' : 'gap');
+  heroTag.k = 1;
+  hero.click *= Math.exp(-dt * 4);
+};
+
+/* ---------- 2. the mounting plate: drawn, extruded, then read for features ---------- */
+const HOLES = [[50, 30], [-50, 30], [50, -30], [-50, -30]];
+function plateShape() {
+  const s = new THREE.Shape(), x = -60, y = -40, w = 120, h = 80, r = 8;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.absarc(x + w - r, y + r, r, -Math.PI / 2, 0, false);
+  s.lineTo(x + w, y + h - r); s.absarc(x + w - r, y + h - r, r, 0, Math.PI / 2, false);
+  s.lineTo(x + r, y + h); s.absarc(x + r, y + h - r, r, Math.PI / 2, Math.PI, false);
+  s.lineTo(x, y + r); s.absarc(x + r, y + r, r, Math.PI, Math.PI * 1.5, false);
+  for (const [hx, hy] of HOLES) { const p = new THREE.Path(); p.absarc(hx, hy, 3.3, 0, Math.PI * 2, true); s.holes.push(p); }
+  const sl = new THREE.Path();
+  sl.moveTo(-14, -6); sl.lineTo(14, -6); sl.absarc(14, 0, 6, -Math.PI / 2, Math.PI / 2, false); sl.lineTo(-14, 6); sl.absarc(-14, 0, 6, Math.PI / 2, Math.PI * 1.5, false);
+  s.holes.push(sl);
+  return s;
+}
+const PLATE_SHAPE = plateShape();
+const PLATE_GEOM = (() => {
+  const g = new THREE.ExtrudeGeometry(PLATE_SHAPE, { depth: 6.8, bevelEnabled: true, bevelThickness: 0.6, bevelSize: 0.6, bevelOffset: -0.6, bevelSegments: 2, curveSegments: 28 });
+  g.translate(0, 0, -3.4);
+  return g;
+})();
+// which feature each triangle belongs to: 0 stock, 1 hole, 2 slot, 3 corner round
+const PLATE_FID = (() => {
+  const fid = new Uint8Array(PLATE_GEOM.attributes.position.count);
+  faceLoop(PLATE_GEOM, (i, nx, ny, nz, cx, cy) => {
+    let f = 0;
+    if (Math.abs(nz) < 0.97) {
+      if (HOLES.some(([hx, hy]) => Math.hypot(cx - hx, cy - hy) < 4.8)) f = 1;
+      else if (Math.abs(cy) < 7.2 && Math.abs(cx) < 21) f = 2;
+      else if (Math.abs(cx) > 51 && Math.abs(cy) > 31) f = 3;
+    }
+    fid[i] = fid[i + 1] = fid[i + 2] = f;
+  });
+  return fid;
+})();
+
+const plate = actor('plate', 1.0);
+const platePose = new THREE.Group(); plate.group.add(platePose);
+const plateGeom = PLATE_GEOM.clone();
+plateGeom.setAttribute('color', new THREE.BufferAttribute(new Float32Array(plateGeom.attributes.position.count * 3), 3));
+const plateMat = own(plate, std(0xffffff, { vc: true, r: 0.42, m: 0.35, env: 0.75 }));
+const plateMesh = new THREE.Mesh(plateGeom, plateMat);
+platePose.add(plateMesh);
+const plateEdges = shapeEdges(plate, plateMesh, PLATE_SHAPE, [3.75, -3.75]);
+const FEAT_COL = [new THREE.Color(C.stock), new THREE.Color(C.gold), new THREE.Color(C.gauge), new THREE.Color(C.corner)];
+let lastW = '';
+function recolorPlate(w) {
+  const key = w.map(x => x.toFixed(3)).join();
+  if (key === lastW) return; lastW = key;
+  const col = plateGeom.attributes.color.array, c = new THREE.Color();
+  for (let v = 0; v < PLATE_FID.length; v++) {
+    const f = PLATE_FID[v];
+    c.copy(FEAT_COL[0]); if (f) c.lerp(FEAT_COL[f], w[f]);
+    col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b;
+  }
+  plateGeom.attributes.color.needsUpdate = true;
+}
+// the 2D drawing: outline and dimensions, drawn line by line
+function contourSegs(pts, out) { for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; out.push(p.x, p.y, 0, q.x, q.y, 0); } }
+const outlinePos = [];
+contourSegs(PLATE_SHAPE.getPoints(24), outlinePos);
+for (const h of PLATE_SHAPE.holes) contourSegs(h.getPoints(24), outlinePos);
+const outlineGeom = new THREE.BufferGeometry(); outlineGeom.setAttribute('position', new THREE.Float32BufferAttribute(outlinePos, 3));
+const outlineCount = outlinePos.length / 3;
+const outline = new THREE.LineSegments(outlineGeom, own(plate, lineMat(C.ink, 0.9)));
+platePose.add(outline);
+const dimPos = [
+  -60, -42, 0, -60, -56, 0,  60, -42, 0, 60, -56, 0,  -60, -52, 0, 60, -52, 0,  -62, -54, 0, -58, -50, 0,  58, -54, 0, 62, -50, 0,
+  -62, -40, 0, -76, -40, 0,  -62, 40, 0, -76, 40, 0,  -72, -40, 0, -72, 40, 0,  -74, -42, 0, -70, -38, 0,  -74, 38, 0, -70, 42, 0,
+  52.4, 32.4, 0, 62, 46, 0,  62, 46, 0, 72, 46, 0,
+  57.7, -37.7, 0, 66, -48, 0,  66, -48, 0, 74, -48, 0,
+  19, -2.5, 0, 30, -16, 0,  30, -16, 0, 38, -16, 0];
+const dimGeom = new THREE.BufferGeometry(); dimGeom.setAttribute('position', new THREE.Float32BufferAttribute(dimPos, 3));
+const dims = new THREE.LineSegments(dimGeom, own(plate, lineMat(C.gauge, 0.9)));
+platePose.add(dims);
+const dimTags = [
+  addTag(plate, dims, [0, -52, 0], '120', 'dim'),
+  addTag(plate, dims, [-72, 0, 0], '80', 'dim'),
+  addTag(plate, dims, [73, 46, 0], '4× ⌀6.6 THRU', 'dim lead'),
+  addTag(plate, dims, [75, -48, 0], 'R8', 'dim lead'),
+  addTag(plate, dims, [39, -16, 0], 'SLOT 40 × 12', 'dim lead')];
+const cornerV = new THREE.Vector3();
+const featTags = [
+  addTag(plate, plateMesh, [50, 30, 4], 'Through hole ⌀6.6, 4×'),
+  addTag(plate, plateMesh, [14, 6, 4], 'Slot 40 × 12, through'),
+  addTag(plate, plateMesh, [57.7, -37.7, 0], 'Corner round R8, 4×')];
+plate.update = (tl, time) => {
+  const draw = sm(-0.12, 0.3, tl);
+  outline.geometry.setDrawRange(0, Math.floor(outlineCount * draw / 2) * 2);
+  const dimK = sm(0.1, 0.28, tl) * (1 - sm(0.52, 0.66, tl));
+  dims.material.userData.k = dimK; dimTags.forEach(t => { t.k = dimK; });
+  const solid = ease(sm(0.36, 0.74, tl));
+  plateMesh.scale.z = 0.02 + 0.98 * solid;
+  plateMat.userData.k = sm(0.3, 0.46, tl);
+  plateEdges.material.userData.k = sm(0.55, 0.8, tl);
+  const front = 4 * plateMesh.scale.z + 0.3;
+  outline.position.z = front; dims.position.z = front;
+  outline.material.userData.k = 1 - sm(0.62, 0.86, tl);
+  const r = ease(sm(0.4, 0.95, tl));
+  const idle = RM ? 0 : 0.1 * Math.sin(time * 0.35);
+  platePose.rotation.set(-0.95 * r + ptr.y * 0.08 * r, ptr.x * 0.1 * r, 0.5 * r + 0.45 * sm(1, 2, tl) + idle * r);
+  const w = [0, sm(1.02, 1.16, tl), sm(1.18, 1.32, tl), sm(1.34, 1.48, tl)];
+  recolorPlate(w);
+  featTags.forEach((t, i) => { t.k = w[i + 1]; });
+  if (w[3] > 0) {
+    platePose.updateMatrixWorld();
+    let best = -Infinity;
+    for (const [cx, cy] of [[57.7, 37.7], [-57.7, 37.7], [57.7, -37.7], [-57.7, -37.7]]) {
+      cornerV.set(cx, cy, 0); plateMesh.localToWorld(cornerV);
+      if (cornerV.z > best) { best = cornerV.z; featTags[2].pos.set(cx, cy, 0); }
+    }
+  }
+};
+
+/* ---------- 3. a shaft in a ⌀20 H7 bore: the fit you can try ---------- */
+const fit = actor('fit', 1.5);
+const fitPose = new THREE.Group(); fit.group.add(fitPose);
+const BLOCK_SHAPE = (() => {
+  const s = new THREE.Shape(); s.moveTo(-35, -35); s.lineTo(35, -35); s.lineTo(35, 35); s.lineTo(-35, 35); s.lineTo(-35, -35);
+  const h = new THREE.Path(); h.absarc(0, 0, 10, 0, Math.PI * 2, true); s.holes.push(h); return s;
+})();
+const blockGeom = (() => {
+  const s = new THREE.Shape(); s.moveTo(-35, -35); s.lineTo(35, -35); s.lineTo(35, 35); s.lineTo(-35, 35); s.lineTo(-35, -35);
+  const h = new THREE.Path(); h.absarc(0, 0, 10, 0, Math.PI * 2, true); s.holes.push(h);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 34.8, bevelEnabled: true, bevelThickness: 0.6, bevelSize: 0.6, bevelOffset: -0.6, bevelSegments: 2, curveSegments: 56 });
+  g.rotateX(-Math.PI / 2); g.translate(0, -17.4, 0);
+  colorize(g, (nx, ny, nz, cx, cy, cz) => (Math.abs(ny) < 0.97 && Math.hypot(cx, cz) < 11.5) ? 0xB9C1C3 : C.stock);
+  return g;
+})();
+const block = new THREE.Mesh(blockGeom, own(fit, std(0xffffff, { vc: true, r: 0.42, m: 0.35, env: 0.75 })));
+fitPose.add(block);
+{ const e = shapeEdges(fit, block, BLOCK_SHAPE, [-17.2, 17.2], [[-35, -35], [35, -35], [35, 35], [-35, 35]], 0.5); e.rotation.x = -Math.PI / 2; }
+const shaftGeom = new THREE.LatheGeometry([
+  new THREE.Vector2(0, -22), new THREE.Vector2(0.88, -22), new THREE.Vector2(1, -20.8), new THREE.Vector2(1, 20.8), new THREE.Vector2(0.9, 22), new THREE.Vector2(0, 22)], 56);
+const shaft = new THREE.Mesh(shaftGeom, own(fit, std(0xAEB6BA, { m: 0.55, r: 0.32, env: 0.9 })));
+fitPose.add(shaft); edges(fit, shaft, 40, 0.45);
+const boreTag = addTag(fit, block, [0, 17.4, 10], '⌀20 H7', 'left');
+const shaftTag = addTag(fit, shaft, [0, 22, 0], 'Shaft ⌀19.985');
+const frameTag = addTag(fit, block, [35, 17.4, -20], '⟂ │ ⌀0.02 │ A', 'frame');
+const datumTag = addTag(fit, block, [-20, -17.4, 35], 'A', 'datum');
+let shaftD = (window.TOL && window.TOL.d) || 19.985, fitKind = (window.TOL && window.TOL.kind) || 'slide', dropT = 9, wasIn = false;
+document.addEventListener('tol:shaft', e => {
+  const k = e.detail.kind, changed = k !== fitKind;
+  shaftD = e.detail.d; fitKind = k;
+  if (e.detail.drop || changed) dropT = 0;
+});
+fit.update = (tl, time, dt) => {
+  const f = clamp(tl, 0, 1);
+  const inView = fit.p > 0.6;
+  if (inView && !wasIn) dropT = 0;
+  wasIn = inView;
+  const rv = clamp(10 - (20.0105 - shaftD) * 50, 5, 13);
+  shaft.scale.set(rv, 1, rv);
+  const target = fitKind === 'press' ? 39.6 : fitKind === 'tap' ? 30 : 6;
+  dropT += dt;
+  const fall = RM ? 1 : clamp(dropT / 0.6, 0, 1);
+  shaft.position.y = 80 + (target - 80) * fall * fall;
+  const after = dropT - 0.6;
+  let jx = 0, tz = 0;
+  if (!RM && after > 0) {
+    if (fitKind === 'press') jx = Math.sin(after * 55) * 1.4 * Math.exp(-after * 4);
+    if (fitKind === 'tap') jx = Math.sin(after * 40) * 0.7 * Math.exp(-after * 6);
+    if (fitKind === 'loose') tz = Math.sin(time * 6.5) * 0.06 * (0.35 + 0.65 * Math.exp(-after * 1.2));
+    if (fitKind === 'run') shaft.rotation.y += dt * 2.5;
+  }
+  shaft.position.x = jx; shaft.rotation.z = tz;
+  fitPose.rotation.set(0.5 + ptr.y * 0.08, -0.6 + 0.35 * f + ptr.x * 0.15, 0);
+  setTag(shaftTag, 'Shaft ⌀' + shaftD.toFixed(3));
+  boreTag.k = 1; shaftTag.k = sm(0.55, 0.9, dropT); frameTag.k = sm(0.15, 0.4, f); datumTag.k = sm(0.15, 0.4, f);
+};
+
+/* ---------- 4. brackets bolted to the plate ---------- */
+const asm = actor('asm', 1.0);
+const asmPose = new THREE.Group(); asm.group.add(asmPose);
+const asmPlate = new THREE.Mesh(PLATE_GEOM, own(asm, std(C.stock, { r: 0.42, m: 0.35, env: 0.75 })));
+asmPose.add(asmPlate); shapeEdges(asm, asmPlate, PLATE_SHAPE, [3.75, -3.75], [], 0.5);
+const bracketGeom = (() => {
+  const s = new THREE.Shape(); s.moveTo(-12, 0); s.lineTo(12, 0); s.lineTo(12, 30); s.lineTo(6, 30); s.lineTo(6, 6); s.lineTo(-12, 6); s.lineTo(-12, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 114.8, bevelEnabled: true, bevelThickness: 0.6, bevelSize: 0.6, bevelOffset: -0.6, bevelSegments: 2 });
+  g.applyMatrix4(new THREE.Matrix4().set(0, 0, 1, -57.4, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1));
+  return g;
+})();
+const bracketMat = own(asm, std(0x8C989E, { r: 0.5, m: 0.3, env: 0.6 }));
+const brackets = [1, -1].map(sgn => {
+  const m = new THREE.Mesh(bracketGeom, bracketMat);
+  m.rotation.z = sgn > 0 ? 0 : Math.PI; m.userData.y = 28 * sgn;
+  asmPose.add(m); edges(asm, m, 35, 0.5); return m;
+});
+const boltMat = own(asm, std(0x2B3135, { m: 0.6, r: 0.35, env: 0.8 }));
+const zincMat = own(asm, std(0xB9C1C3, { m: 0.8, r: 0.3, env: 0.9 }));
+const socketMat = own(asm, std(0x101417, { m: 0.2, r: 0.6 }));
+const zCyl = (r1, r2, h, seg) => { const g = new THREE.CylinderGeometry(r1, r2, h, seg); g.rotateX(Math.PI / 2); return g; };
+const G = { head: zCyl(5, 5, 6, 40), shank: zCyl(3, 3, 25, 24), washer: zCyl(6, 6, 1.6, 40), nut: zCyl(5.77, 5.77, 5.2, 6), socket: new THREE.CircleGeometry(2.5, 6) };
+const bolts = HOLES.map(([hx, hy]) => {
+  const up = new THREE.Group(), down = new THREE.Group();
+  const head = new THREE.Mesh(G.head, boltMat); head.position.z = 14.6;
+  const sock = new THREE.Mesh(G.socket, socketMat); sock.position.z = 17.62;
+  const shank = new THREE.Mesh(G.shank, boltMat); shank.position.z = 11.6 - 12.5;
+  const w1 = new THREE.Mesh(G.washer, zincMat); w1.position.z = 10.8;
+  up.add(head, sock, shank, w1);
+  const w2 = new THREE.Mesh(G.washer, zincMat); w2.position.z = -4.8;
+  const nut = new THREE.Mesh(G.nut, zincMat); nut.position.z = -8.2;
+  down.add(w2, nut);
+  [head, w1, w2, nut].forEach(m => edges(asm, m, 40, 0.35));
+  up.position.set(hx, hy, 0); down.position.set(hx, hy, 0);
+  asmPose.add(up, down);
+  return { up, down };
+});
+const asmTags = [
+  addTag(asm, bolts[2].up, [0, 0, 17.6], '4× M6×25 socket head, ISO 4762'),
+  addTag(asm, bolts[2].down, [0, 0, -10.8], 'Washers ISO 7089, nuts ISO 4032'),
+  addTag(asm, brackets[0], [40, 9, 30], 'No clashes. 4 of 4 holes line up.', 'ok'),
+  addTag(asm, bolts[3].up, [0, 0, 0], 'Grip 14 mm + washers + nut = M6×25', 'left')];
+asm.update = (tl, time) => {
+  const f = clamp(tl, 0, 1);
+  const a1 = ease(sm(0.0, 0.3, f)), a2 = ease(sm(0.18, 0.5, f)), a3 = ease(sm(0.32, 0.6, f));
+  brackets.forEach(b => { b.position.set(0, b.userData.y, 4 + 60 * (1 - a1)); });
+  bolts.forEach((b, i) => {
+    b.up.position.z = 110 * (1 - a2) + i * 6 * (1 - a2);
+    b.up.rotation.z = (1 - a2) * 9;
+    b.down.position.z = -50 * (1 - a3);
+    b.down.rotation.z = -(1 - a3) * 6;
+  });
+  const idle = RM ? 0 : 0.08 * Math.sin(time * 0.3);
+  asmPose.rotation.set(-1.0 + ptr.y * 0.06, ptr.x * 0.08, 0.55 + 0.35 * f + idle);
+  asmPose.position.y = -8;
+  asmTags[0].k = sm(0.58, 0.68, f); asmTags[1].k = sm(0.62, 0.72, f); asmTags[2].k = sm(0.66, 0.76, f);
+  asmTags[3].k = sm(0.28, 0.38, f) * (1 - sm(0.5, 0.58, f));
+};
+
+/* ---------- 5. a panel: fittings with ports, routed tube, cushion clamps ---------- */
+const panel = actor('panel', 0.44);
+const pg = new THREE.Group(); panel.group.add(pg);
+const stainless = own(panel, std(0xBCC4C7, { m: 0.85, r: 0.3, env: 1.0 }));
+const sheetMesh = new THREE.Mesh(new THREE.BoxGeometry(360, 240, 4), own(panel, std(0xE4E8E7, { r: 0.75, m: 0.05 })));
+sheetMesh.position.z = -2; pg.add(sheetMesh); edges(panel, sheetMesh, 30, 0.5);
+const STRUT_Y = [20, -50];
+const strutMat = own(panel, std(0x4C565C, { r: 0.45, m: 0.45 }));
+for (const y of STRUT_Y) { const s = new THREE.Mesh(new THREE.BoxGeometry(340, 16, 16), strutMat); s.position.set(0, y, 8); pg.add(s); edges(panel, s, 30, 0.4); }
+function box(w, h, d, mat, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); pg.add(m); edges(panel, m, 30, 0.4); return m; }
+const goldMat = own(panel, std(C.gold, { r: 0.45, m: 0.1 }));
+box(26, 18, 18, stainless, -150, 60, 28); box(4, 28, 4, goldMat, -150, 80, 40);
+box(16, 16, 16, stainless, -80, 60, 28);
+const stem = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 18, 20), stainless); stem.position.set(-80, 76, 28); pg.add(stem);
+const dial = new THREE.Mesh(zCyl(16, 16, 9, 48), stainless); dial.position.set(-80, 100, 28); pg.add(dial); edges(panel, dial, 40, 0.4);
+const face = new THREE.Mesh(new THREE.CircleGeometry(13.5, 48), own(panel, std(0xF8F9F8, { r: 0.8, m: 0 }))); face.position.set(-80, 100, 32.6); pg.add(face);
+const needle = new THREE.Mesh(new THREE.BoxGeometry(1.4, 11, 0.6), own(panel, std(0x1D2327, { r: 0.6 }))); needle.position.set(-80, 100, 33.1); needle.geometry.translate(0, 5, 0); pg.add(needle);
+box(90, 16, 16, stainless, 60, -20, 28);
+for (const y of [30, -20, -70]) { box(22, 18, 18, stainless, 140, y, 28); const act = new THREE.Mesh(zCyl(8, 8, 16, 32), goldMat); act.position.set(140, y, 45); pg.add(act); edges(panel, act, 40, 0.4); }
+const ROUTES = [
+  { pts: [[-137, 60], [-88, 60]], s: 0.0, e: 0.22 },
+  { pts: [[-72, 60], [-20, 60], [-20, -20], [15, -20]], s: 0.18, e: 0.6 },
+  { pts: [[105, -20], [129, -20]], s: 0.55, e: 0.75 },
+  { pts: [[80, -12], [80, 30], [129, 30]], s: 0.58, e: 0.92 },
+  { pts: [[40, -28], [40, -70], [129, -70]], s: 0.62, e: 1.0 }];
+const tubeMat = own(panel, std(0xC9D0D3, { m: 0.9, r: 0.25, env: 1.1 }));
+const clampMat = own(panel, std(C.mist, { r: 0.55, m: 0.2 }));
+const Z = 28, RAD = 10;
+let tubeTotal = 0;
+const clamps = [];
+for (const r of ROUTES) {
+  const P = r.pts.map(([x, y]) => new THREE.Vector3(x, y, Z));
+  const path = new THREE.CurvePath();
+  let cur = P[0].clone();
+  for (let i = 1; i < P.length; i++) {
+    const c = P[i];
+    if (i < P.length - 1) {
+      const dIn = c.clone().sub(P[i - 1]).normalize(), dOut = P[i + 1].clone().sub(c).normalize();
+      const a = c.clone().addScaledVector(dIn, -RAD), b = c.clone().addScaledVector(dOut, RAD);
+      path.add(new THREE.LineCurve3(cur, a)); path.add(new THREE.QuadraticBezierCurve3(a, c.clone(), b)); cur = b;
+    } else path.add(new THREE.LineCurve3(cur, c));
+  }
+  const len = path.getLength(); tubeTotal += len;
+  const geo = new THREE.TubeGeometry(path, Math.max(24, Math.round(len / 2)), 3.2, 14, false);
+  r.mesh = new THREE.Mesh(geo, tubeMat); r.count = geo.index.count; pg.add(r.mesh);
+  // a cushion clamp wherever a vertical run crosses a strut
+  let along = 0;
+  const segLen = [];
+  for (let i = 1; i < r.pts.length; i++) segLen.push(Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]));
+  const poly = segLen.reduce((s, v) => s + v, 0);
+  for (let i = 1; i < r.pts.length; i++) {
+    const [x0, y0] = r.pts[i - 1], [x1, y1] = r.pts[i];
+    if (x0 === x1) for (const sy of STRUT_Y) if ((sy - y0) * (sy - y1) < 0) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), clampMat); m.position.set(x0, sy, 23); pg.add(m); edges(panel, m, 30, 0.4);
+      clamps.push({ m, route: r, at: (along + Math.abs(sy - y0)) / poly });
+    }
+    along += segLen[i - 1];
+  }
+}
+const panelTags = [
+  addTag(panel, pg, [-20, -2, 32], 'Route found around every part', 'left'),
+  addTag(panel, pg, [80, 20, 30], clamps.length + ' cushion clamps on the strut'),
+  addTag(panel, pg, [-150, -110, 0], 'Cut list: ' + ROUTES.length + ' tubes, 1/4 in, ' + Math.round(tubeTotal) + ' mm total'),
+  addTag(panel, pg, [-80, 116, 28], 'Gauge on the tee port', 'left')];
+panel.update = (tl, time) => {
+  const f = clamp(tl, 0, 1);
+  const gp = sm(0.0, 0.55, f);
+  for (const r of ROUTES) {
+    const g = sm(r.s, r.e, gp);
+    r.mesh.geometry.setDrawRange(0, Math.floor(r.count * g / 6) * 6);
+  }
+  for (const c of clamps) { const g = sm(c.route.s, c.route.e, gp); const s = sm(c.at, c.at + 0.08, g); c.m.scale.setScalar(Math.max(0.001, s)); }
+  needle.rotation.z = -0.9 + 1.6 * sm(0.1, 0.5, f);
+  const idle = RM ? 0 : 0.05 * Math.sin(time * 0.3);
+  pg.rotation.set(0.12 + ptr.y * 0.05, -0.5 + 0.3 * f + ptr.x * 0.08 + idle, 0);
+  panelTags[0].k = sm(0.25, 0.38, f); panelTags[1].k = sm(0.5, 0.62, f); panelTags[2].k = sm(0.56, 0.68, f); panelTags[3].k = sm(0.02, 0.12, f) * (1 - sm(0.4, 0.5, f));
+};
+
+/* ---------- 6. the fit cube again, closing to tolerance ---------- */
+const close = actor('close', 1.22);
+const cube2 = makeCube(close);
+const closeTag = addTag(close, cube2.spin, [0, 0, 0], 'Gap 0.05 ±0.01. Fits.', 'gap ok');
+close.update = (tl, time, dt) => {
+  const f = clamp(tl, 0, 1);
+  const shut = ease(sm(0.0, 0.5, f));
+  const gap = 38 - 34 * shut + close.click;
+  cube2.B.position.copy(cube2.n).multiplyScalar(gap);
+  cube2.spin.rotation.y = -Math.PI / 4 + (1 - shut) * 0.9 + (RM ? 0 : 0.12 * Math.sin(time * 0.5)) + ptr.x * 0.3;
+  cube2.tilt.rotation.x = 0.6 + ptr.y * 0.12;
+  closeTag.pos.set(17.5, 36.5, 0).addScaledVector(cube2.n, gap / 2);
+  const fits = shut > 0.97 && close.click < 3;
+  setTag(closeTag, fits ? 'Gap 0.05 ±0.01. Fits.' : 'Closing the gap', fits ? 'gap ok' : 'gap');
+  closeTag.k = sm(0.3, 0.5, f);
+  close.click *= Math.exp(-dt * 4);
+};
+
+/* ---------- scroll: which scene, and how far through it ---------- */
+const sections = Array.from(document.querySelectorAll('main > section'));
+const idx = id => sections.findIndex(s => s.id === id);
+hero.range = [idx('top'), idx('top')];
+plate.range = [idx('drawing'), idx('features')];
+fit.range = [idx('fits'), idx('fits')];
+asm.range = [idx('assembly'), idx('assembly')];
+panel.range = [idx('panels'), idx('panels')];
+close.range = [idx('access'), idx('access')];
+const LAST = sections.length - 1;
+let anchors = [], W = 1, H = 1;
+function measure() {
+  const vh = innerHeight;
+  anchors = sections.map((s, i) => i === 0 ? 0 : Math.max(1, s.getBoundingClientRect().top + scrollY - vh * 0.45));
+  for (let i = 1; i < anchors.length; i++) anchors[i] = Math.max(anchors[i], anchors[i - 1] + 1);
+  anchors.push(Math.max(document.documentElement.scrollHeight - vh, anchors[anchors.length - 1] + 1) + 1);
+}
+function tNow() {
+  const y = scrollY;
+  for (let i = 0; i < sections.length; i++) if (y < anchors[i + 1]) return i + clamp((y - anchors[i]) / (anchors[i + 1] - anchors[i]), 0, 1);
+  return sections.length;
+}
+function presence(a, t) {
+  const [i0, i1] = a.range;
+  const fin = i0 === 0 ? 1 : sm(i0 - 0.04, i0 + 0.12, t);
+  const fout = i1 === LAST ? 1 : 1 - sm(i1 + 0.86, i1 + 0.98, t);
+  return fin * fout;
+}
+function layout() {
+  W = innerWidth; H = innerHeight;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
+  const wide = W >= 900;
+  const cx = wide ? W * 0.69 : W * 0.5, cy = wide ? H * 0.55 : H * 0.27;
+  const region = wide ? Math.min(W * 0.52, H * 0.86) : Math.min(W * 0.96, H * 0.44);
+  camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
+  const dist = 150 * H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.82 * region);
+  camera.position.set(0, 0, dist); camera.near = dist / 20; camera.far = dist * 6;
+  camera.updateProjectionMatrix();
+  measure();
+}
+addEventListener('resize', layout);
+if (window.ResizeObserver) new ResizeObserver(() => measure()).observe(document.body);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+layout();
+
+/* ---------- pointer: the models lean toward the cursor; click a cube to pull it apart ---------- */
+addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  ptrT.x = (e.clientX / innerWidth) * 2 - 1; ptrT.y = (e.clientY / innerHeight) * 2 - 1;
+  const hit = pickAt(e);
+  document.documentElement.style.cursor = hit ? 'pointer' : '';
+}, { passive: true });
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pickAt(e) {
+  if (e.target.closest && e.target.closest('a, button, input, label, output, .copy, .band, header, footer')) return null;
+  ndc.set((e.clientX / W) * 2 - 1, -(e.clientY / H) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  for (const a of [hero, close]) {
+    if (a.p < 0.5) continue;
+    if (ray.intersectObjects(a.pick, false).length) return a;
+  }
+  return null;
+}
+addEventListener('pointerdown', e => { const a = pickAt(e); if (a) a.click = 16; });
+
+/* ---------- render ---------- */
+const clock = new THREE.Clock();
+let tS = tNow();
+const v = new THREE.Vector3();
+function applyFade(a) {
+  for (const m of a.mats) {
+    const o = a.p * m.userData.base * (m.userData.k ?? 1);
+    m.opacity = o; m.transparent = o < 0.995 || m.isLineBasicMaterial; m.visible = o > 0.004;
+  }
+}
+function placeTags() {
+  for (const t of tags) {
+    const o = t.a.p * t.k;
+    if (o < 0.03 || !t.a.group.visible) { if (t.on) { t.el.style.visibility = 'hidden'; t.on = false; } continue; }
+    v.copy(t.pos); t.obj.localToWorld(v); v.project(camera);
+    if (v.z > 1 || v.z < -1) { if (t.on) { t.el.style.visibility = 'hidden'; t.on = false; } continue; }
+    const x = (v.x * 0.5 + 0.5) * W, y = (-v.y * 0.5 + 0.5) * H;
+    t.el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+    if (!/\bdim\b|\bdatum\b/.test(t.el.className)) {
+      if (t.w == null || t.wHtml !== t.html) { t.w = t.el.lastChild.offsetWidth + 18; t.wHtml = t.html; }
+      const isLeft = t.el.classList.contains('left');
+      const roomR = W - 8 - x, roomL = x - 8;
+      t.el.classList.toggle('flip', isLeft ? (roomL < t.w && roomR > roomL) : (roomR < t.w && roomL > roomR));
+    }
+    t.el.style.opacity = o.toFixed(3);
+    if (!t.on) { t.el.style.visibility = 'visible'; t.on = true; }
+  }
+}
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), 0.05), time = clock.elapsedTime;
+  const target = tNow();
+  tS = RM ? target : tS + (target - tS) * (1 - Math.exp(-dt * 7));
+  const kp = 1 - Math.exp(-dt * 3);
+  ptr.x += (ptrT.x - ptr.x) * kp; ptr.y += (ptrT.y - ptr.y) * kp;
+  for (const a of actors) {
+    a.p = presence(a, tS);
+    a.group.visible = a.p > 0.002;
+    if (!a.group.visible) continue;
+    a.group.scale.setScalar(a.baseScale * (0.86 + 0.14 * a.p));
+    a.update(tS - a.range[0], time, dt);
+    applyFade(a);
+  }
+  renderer.render(scene, camera);
+  placeTags();
+}
+frame();
+</script>
+</body>
+</html>
