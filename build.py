@@ -25,12 +25,12 @@ extra = f'''<meta name="description" content="{DESC}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TolRnce">
 <meta property="og:url" content="{SITE}">
-<meta property="og:title" content="TolRnce: CAD that designs to tolerance">
+<meta property="og:title" content="TolRnce: the AI design engineer that works to tolerance">
 <meta property="og:description" content="{DESC}">
 <meta property="og:image" content="{SITE}og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The TolRnce fit-cube logo and the line: CAD that designs to tolerance.">
+<meta property="og:image:alt" content="The TolRnce fit-cube logo and the line: The AI design engineer that works to tolerance.">
 <meta name="twitter:card" content="summary_large_image">'''
 doc = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
