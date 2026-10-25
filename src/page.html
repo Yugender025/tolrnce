@@ -168,21 +168,12 @@ td.res { font-variant-numeric: tabular-nums; }
 .status.wip { color: var(--warn); }
 .note-fine { font-size: 13.5px; color: var(--muted); max-width: 80ch; }
 
-/* privacy points and questions */
+/* privacy points */
 .points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; margin: 0; }
 .points div { border-top: 1px solid var(--rule-strong); padding: 16px 0 22px; min-width: 0; }
 .points dt { font: 600 18px/1.35 var(--body); margin-bottom: 6px; }
 .points dd { margin: 0; color: var(--muted); max-width: 52ch; }
-.faq { border-top: 1px solid var(--rule-strong); max-width: 54rem; }
-.faq details { border-bottom: 1px solid var(--rule); }
-.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; font: 600 18px/1.4 var(--body); }
-.faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: "+"; font: 400 24px/1 var(--mono); color: var(--muted); flex: none; transition: transform .2s ease; }
-.faq details[open] summary::after { transform: rotate(45deg); }
-.faq details p { color: var(--muted); padding: 0 0 20px; max-width: 64ch; }
-.faq details p a { color: var(--fg); }
-@media (prefers-reduced-motion: reduce) { .faq summary::after { transition: none; } }
-@media (max-width: 760px) { .points { grid-template-columns: 1fr; } .faq summary { font-size: 16.5px; } }
+@media (max-width: 760px) { .points { grid-template-columns: 1fr; } }
 
 /* closing scene */
 .closing { min-height: 150vh; }
@@ -239,7 +230,6 @@ td.res { font-variant-numeric: tabular-nums; }
       <li><a href="#fits">Tolerances</a></li>
       <li><a href="#proof">Test results</a></li>
       <li><a href="#privacy">Privacy</a></li>
-      <li><a href="#faq">FAQ</a></li>
     </ul>
     <a class="btn primary small" href="#access">Get early access</a>
   </div>
@@ -383,42 +373,6 @@ td.res { font-variant-numeric: tabular-nums; }
         <div><dt>You decide what the AI sees</dt><dd>The AI agent in the web studio sends your request and the current model to Claude, made by Anthropic, only when you ask it to do something.</dd></div>
         <div><dt>No lock-in</dt><dd>Every part exports as STEP, and the macros rebuild it as native features in your own CAD program, where you own it.</dd></div>
       </dl>
-    </div>
-  </section>
-
-  <section class="band" id="faq" aria-labelledby="h-faq">
-    <div class="wrap">
-      <h2 id="h-faq">Questions engineers ask</h2>
-      <div class="faq">
-        <details>
-          <summary>Does TolRnce replace my CAD program?</summary>
-          <p>No. It does the first draft and the repetitive work, then hands the model to your CAD program: a STEP file, plus macros that rebuild the feature tree in SOLIDWORKS, Fusion and FreeCAD, and step-by-step instructions for Inventor, Onshape and AutoCAD. You keep designing where you already work.</p>
-        </details>
-        <details>
-          <summary>What can I start from?</summary>
-          <p>A DWG or DXF drawing, a supplier’s STEP file, one of the starter parts, or a description in words. With the AI agent you can also attach a photo of a drawing.</p>
-        </details>
-        <details>
-          <summary>Does it really handle tolerances?</summary>
-          <p>Yes. Holes carry ISO 286 fits such as H7, drawings carry ISO 2768 general tolerances, and a stack-up calculator handles chains of dimensions. From STEP AP242 files it reads the dimensions, limits, fits, GD&amp;T frames and datums the designer put in: 404 of 415 in NIST’s test cases.</p>
-        </details>
-        <details>
-          <summary>Is the AI always right?</summary>
-          <p>No, and TolRnce doesn’t assume it is. Every model is built by a real geometry kernel and checked before you see it: clashes, holes that don’t line up, bolts with no hole, walls that are too thin. Features the network finds are checked against the exact geometry. Check the model before anything is made, as you would with a colleague’s work.</p>
-        </details>
-        <details>
-          <summary>Which CAD programs and files does it work with?</summary>
-          <p>Macros for SOLIDWORKS (VBA), Fusion (Python), FreeCAD and CadQuery; step-by-step guides for Inventor, Onshape and AutoCAD. Files in: DWG, DXF, STEP (AP203, AP214, AP242) and images. Files out: STEP, STL, SVG drawings, CSV bills of materials and tube cut lists.</p>
-        </details>
-        <details>
-          <summary>Where does it run?</summary>
-          <p>In your browser, and as a desktop app for Windows and macOS (Apple silicon and Intel). The AI agent runs in the web studio today and is coming to the desktop app next.</p>
-        </details>
-        <details>
-          <summary>How do I get access?</summary>
-          <p>Email <a href="#access">hello@tolrnce.com</a> with what you design and which CAD program you use, and we’ll set you up.</p>
-        </details>
-      </div>
     </div>
   </section>
 
