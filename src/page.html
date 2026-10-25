@@ -25,8 +25,8 @@
   --display: "Archivo", "IBM Plex Sans", system-ui, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
-  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px), min(4.5vw, 72px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px), min(4.5vw, 72px));
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -84,7 +84,7 @@ p { margin: 0; }
 /* header */
 .nav {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding-block: 12px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  padding-block: 12px; padding-left: max(var(--gutter-l), calc((100% - 1240px) / 2)); padding-right: max(var(--gutter-r), calc((100% - 1240px) / 2));
   background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--rule);
 }
@@ -951,8 +951,10 @@ function layout() {
   renderer.setSize(W, H, false);
   camera.aspect = W / H;
   const wide = W >= 900;
-  const cx = wide ? W * 0.69 : W * 0.5, cy = wide ? H * 0.55 : H * 0.27;
-  const region = wide ? Math.min(W * 0.52, H * 0.86) : Math.min(W * 0.96, H * 0.44);
+  // keep the model inside the same 1240px column as the copy on wide screens
+  const gutter = Math.max(16, Math.min(W * 0.045, 72)), colLeft = Math.max(gutter, (W - 1240) / 2);
+  const cx = wide ? Math.min(W * 0.69, colLeft + 1240 * 0.72) : W * 0.5, cy = wide ? H * 0.55 : H * 0.27;
+  const region = wide ? Math.min(W * 0.52, H * 0.86, 720) : Math.min(W * 0.96, H * 0.44);
   camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
   const dist = 150 * H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.82 * region);
   camera.position.set(0, 0, dist); camera.near = dist / 20; camera.far = dist * 6;
