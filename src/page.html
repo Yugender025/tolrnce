@@ -118,6 +118,7 @@ main { position: relative; z-index: 2; }
 .hero { min-height: 150vh; }
 .hero .copy { top: 10vh; width: min(36rem, 43vw); padding-top: 8vh; gap: 22px; }
 .hero h1 { font: 780 clamp(40px, 4.9vw, 70px)/1.02 var(--display); font-stretch: 114%; letter-spacing: -.02em; }
+.hero h1 .mark { background: var(--accent); color: var(--accent-fg); padding: 0 .14em; margin: 0 -.04em; border-radius: 6px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .works { font-size: 15px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; max-width: 34rem; }
 .works b { color: var(--fg); font-weight: 600; }
 .hero .lede { font-size: 19px; color: var(--muted); max-width: 34rem; }
@@ -239,7 +240,7 @@ td.res { font-variant-numeric: tabular-nums; }
   <section class="scene hero" id="top" aria-labelledby="h-hero">
     <div class="wrap">
       <div class="copy">
-        <h1 id="h-hero">The AI design engineer that works to tolerance.</h1>
+        <h1 id="h-hero">The <span class="mark">AI design engineer</span> that works to tolerance.</h1>
         <p class="lede">Give TolRnce a drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D model with its fits and tolerances, the manufacturing drawing and a cost estimate, and hands it to your CAD program ready to edit.</p>
         <div class="ctas"><a class="btn primary" href="#access">Get early access</a><a class="btn" href="#drawing">See how it works</a></div>
         <p class="works">Rebuilds the feature tree in <b>SOLIDWORKS</b>, <b>Fusion</b> and <b>FreeCAD</b>. Opens anywhere as <b>STEP</b>.</p>
