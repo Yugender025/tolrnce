@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TolRnce: AI for 2D drawing to 3D CAD, with tolerances</title>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>TolRnce</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -221,21 +221,77 @@ td.res { font-variant-numeric: tabular-nums; }
 }
 @media (max-width: 520px) { .nav .btn { padding: 0 12px; } }
 </style>
-<meta name="description" content="TolRnce is an AI design engineer for CAD. Describe a part, or drop in a drawing or a supplier’s STEP file, and get a parametric 3D model with its tolerances, drawing, cost and the steps to build it in your CAD program.">
+<meta name="description" content="Turn a 2D drawing, a STEP file or a few sentences into an editable 3D CAD model with ISO fits and tolerances. Rebuilds it in SOLIDWORKS, Fusion and FreeCAD.">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://tolrnce.com/">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#F8F9F8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14181B" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TolRnce">
+<meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://tolrnce.com/">
 <meta property="og:title" content="TolRnce: the AI design engineer that works to tolerance">
-<meta property="og:description" content="TolRnce is an AI design engineer for CAD. Describe a part, or drop in a drawing or a supplier’s STEP file, and get a parametric 3D model with its tolerances, drawing, cost and the steps to build it in your CAD program.">
+<meta property="og:description" content="Give TolRnce a 2D drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D model with its fits and tolerances, the manufacturing drawing and a cost estimate, ready to edit in your CAD program.">
 <meta property="og:image" content="https://tolrnce.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The TolRnce fit-cube logo and the line: The AI design engineer that works to tolerance.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TolRnce: the AI design engineer that works to tolerance">
+<meta name="twitter:description" content="Give TolRnce a 2D drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D model with its fits and tolerances, the manufacturing drawing and a cost estimate, ready to edit in your CAD program.">
+<meta name="twitter:image" content="https://tolrnce.com/og-image.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://tolrnce.com/#organization",
+   "name": "TolRnce",
+   "url": "https://tolrnce.com/",
+   "logo": "https://tolrnce.com/logo-512.png",
+   "email": "hello@tolrnce.com"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://tolrnce.com/#website",
+   "name": "TolRnce",
+   "url": "https://tolrnce.com/",
+   "publisher": {
+    "@id": "https://tolrnce.com/#organization"
+   }
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://tolrnce.com/#app",
+   "name": "TolRnce",
+   "alternateName": "TolRnce AI design engineer",
+   "url": "https://tolrnce.com/",
+   "description": "Give TolRnce a 2D drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D model with its fits and tolerances, the manufacturing drawing and a cost estimate, ready to edit in your CAD program.",
+   "applicationCategory": "DesignApplication",
+   "applicationSubCategory": "CAD",
+   "operatingSystem": "Web browser, Windows, macOS",
+   "image": "https://tolrnce.com/og-image.png",
+   "featureList": [
+    "2D drawing to parametric 3D CAD model (DWG, DXF, photos of drawings, or a description in words)",
+    "STEP AP203, AP214 and AP242 import with automatic feature recognition",
+    "ISO 286 hole and shaft fits and ISO 2768 general tolerances",
+    "Tolerance stack-up calculator",
+    "Assemblies with mates, bolted joints, clash checks and a bill of materials",
+    "Tube routing for panels and skids, with cut lists",
+    "Manufacturing drawing with dimensions, hole table and general tolerances",
+    "Cost estimate with design-for-manufacturing checks",
+    "Exports STEP and STL, and rebuilds the feature tree in SOLIDWORKS, Fusion and FreeCAD"
+   ],
+   "publisher": {
+    "@id": "https://tolrnce.com/#organization"
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body>
 <canvas id="stage" aria-hidden="true"></canvas>
@@ -262,7 +318,7 @@ td.res { font-variant-numeric: tabular-nums; }
     <div class="wrap">
       <div class="copy">
         <h1 id="h-hero">The <span class="mark">AI design engineer</span> that works to tolerance.</h1>
-        <p class="lede">Give TolRnce a drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D model with its fits and tolerances, the manufacturing drawing and a cost estimate, and hands it to your CAD program ready to edit.</p>
+        <p class="lede">Give TolRnce a 2D drawing, a supplier’s STEP file or a few sentences. It builds the parametric 3D CAD model with its fits and tolerances, the manufacturing drawing and a cost estimate, and hands it to your CAD program ready to edit.</p>
         <div class="ctas"><a class="btn primary" href="#access">Get early access</a><a class="btn" href="#drawing">See how it works</a></div>
         <p class="works">Rebuilds the feature tree in <b>SOLIDWORKS</b>, <b>Fusion</b> and <b>FreeCAD</b>. Opens anywhere as <b>STEP</b>.</p>
         <p class="hint">Scroll to build a part. Click or tap the cube to test its fit.</p>
@@ -273,7 +329,7 @@ td.res { font-variant-numeric: tabular-nums; }
   <section class="scene" id="drawing" aria-labelledby="h-drawing">
     <div class="wrap">
       <div class="copy">
-        <h2 id="h-drawing">From a drawing to a solid</h2>
+        <h2 id="h-drawing">From a 2D drawing to a 3D solid</h2>
         <p>Open a DWG or DXF, a photo of a drawing, or describe the part in words. TolRnce builds a real solid on the OpenCASCADE geometry kernel, with parameters you can change and features you can switch off.</p>
         <dl class="facts">
           <div><dt>Reads</dt><dd>DWG, DXF, photos of drawings, STEP AP203, AP214 and AP242</dd></div>
