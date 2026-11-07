@@ -48,6 +48,12 @@ FEATURES = [
     'Cost estimate with design-for-manufacturing checks',
     'Exports STEP and STL, and rebuilds the feature tree in SOLIDWORKS, Fusion and FreeCAD',
 ]
+# The searches this page is written for. Search engines rank on the visible words, so these phrases appear in
+# the title, headings and text; the list here only labels the structured data. (Google ignores the old
+# <meta name="keywords"> tag, and Bing can treat a stuffed one as spam, so there isn't one.)
+KEYWORDS = ['2D drawing to 3D CAD', 'engineering drawing to 3D model', 'AI CAD', 'DWG to 3D', 'DXF to 3D',
+            'STEP feature recognition', 'ISO 286 fits', 'ISO 2768 general tolerances', 'tolerance stack-up',
+            'SOLIDWORKS macro', 'Fusion script', 'FreeCAD macro', 'tube routing']
 STRUCTURED = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -78,6 +84,7 @@ STRUCTURED = {
             'operatingSystem': 'Web browser, Windows, macOS',
             'image': SITE + 'og-image.png',
             'featureList': FEATURES,
+            'keywords': ', '.join(KEYWORDS),
             'publisher': {'@id': SITE + '#organization'},
         },
     ],

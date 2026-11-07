@@ -266,7 +266,7 @@ td.res { font-variant-numeric: tabular-nums; }
     <div class="wrap">
       <div class="copy">
         <h2 id="h-features">It reads a part the way you do</h2>
-        <p>Drop in a supplier’s STEP file and a trained feature network labels every face: through holes, blind holes, counterbores, countersinks, slots, pockets, steps, bosses, chamfers and fillets. Each feature is checked against the exact geometry, and sizes always come from the geometry.</p>
+        <p>Drop in a supplier’s STEP file and a trained feature-recognition network labels every face: through holes, blind holes, counterbores, countersinks, slots, pockets, steps, bosses, chamfers and fillets. Each feature is checked against the exact geometry, and sizes always come from the geometry.</p>
         <p>It also finds tube sockets, NPT ports and mounting holes, so a vendor part drops straight into an assembly.</p>
         <ul class="legend" aria-label="Colours on the model">
           <li><i style="background:#F0CF45"></i>Holes</li>
@@ -281,7 +281,7 @@ td.res { font-variant-numeric: tabular-nums; }
     <div class="wrap">
       <div class="copy">
         <h2 id="h-fits">Every hole knows its fit</h2>
-        <p>Tolerances are part of the model: ISO 286 fits on holes and shafts, ISO 2768 general tolerances on the drawing, and a stack-up calculator for chains of dimensions. Try a fit on a ⌀20 bore.</p>
+        <p>Tolerances are part of the model: ISO 286 fits on holes and shafts, ISO 2768 general tolerances on the drawing, and a tolerance stack-up calculator for chains of dimensions. Try a hole and shaft fit on a ⌀20 bore.</p>
         <div class="fit-toy">
           <div class="fit-row"><label for="shaft">Shaft diameter</label><output id="shaftOut" for="shaft">⌀19.985 mm</output></div>
           <input type="range" id="shaft" min="19.940" max="20.050" step="0.001" value="19.985">
@@ -312,7 +312,7 @@ td.res { font-variant-numeric: tabular-nums; }
   <section class="scene" id="panels" aria-labelledby="h-panels">
     <div class="wrap">
       <div class="copy">
-        <h2 id="h-panels">Panels, skids and tubing</h2>
+        <h2 id="h-panels">Panels, skids and tube routing</h2>
         <p>Fittings, valves, gauges and manifolds come with ports. Connect them, and TolRnce routes tube around every part on the panel, places cushion clamps where tube crosses the strut, and writes the cut list.</p>
         <p>The same works for vendor parts: their ports are found when you open the STEP file.</p>
       </div>
